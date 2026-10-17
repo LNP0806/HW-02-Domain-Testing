@@ -1,0 +1,297 @@
+{
+  "meta": {
+    "language": "vi",
+    "title": "Tài Liệu Test Case — Hệ Thống EShop (Mã Giảm Giá & Thanh Toán)",
+    "project": "EShop SUT",
+    "feature": "Pool B: Giỏ Hàng & Mã Giảm Giá (FR-08, FR-09)",
+    "doc_id": "TCD-ESHOP-COUPON-01",
+    "version": "1.0",
+    "date": "2026-10-17",
+    "author": "Sinh viên Kiểm thử Phần mềm (23120321)",
+    "reviewer": "QA Lead",
+    "sut_version": "EShop v2.0 (React Web, Node Express, SQLite)",
+    "environment": "Google Chrome 129 trên Windows 11, Backend Node.js v20 cổng 3000",
+    "scope": "Kiểm thử chức năng áp dụng mã giảm giá (FR-09) theo 5 điều kiện C1..C5 và quy trình thanh toán đơn hàng (FR-08) trên giao diện web storefront. Không bao gồm cổng thanh toán bên thứ ba.",
+    "references": [
+      "Đặc tả hệ thống EShop (System Requirements Specification v2.0)",
+      "Đặc tả API Backend EShop (api_specification.md)",
+      "Myers (1979), The Art of Software Testing",
+      "Kaner, Falk, Nguyen (1999), Testing Computer Software"
+    ],
+    "assumptions": [
+      "CSDL ban đầu đã seed đủ các mã giảm giá mẫu: SAVE10, BIGBUY, VIP100, EXPIRED.",
+      "Tài khoản test@eshop.com đã tồn tại trong CSDL và có mật khẩu là Test1234!."
+    ]
+  },
+  "requirements": [
+    {
+      "id": "FR-08",
+      "text": "Thanh toán (Checkout): Chỉ người dùng đã đăng nhập mới tiến hành thanh toán được; Backend phải tự tính lại tổng tiền, không chấp nhận total_amount do client gửi lên; sau thanh toán giỏ hàng được xóa."
+    },
+    {
+      "id": "FR-09",
+      "text": "Mã Giảm Giá (Coupon): Áp dụng dựa trên 5 điều kiện đồng thời (C1: Tồn tại và active, C2: Còn hạn, C3: Tổng đơn >= min_order_amount, C4: Đã đăng nhập, C5: Chưa dùng hết lượt per user)."
+    }
+  ],
+  "suites": [
+    {
+      "id": "TS-01",
+      "name": "Luồng Giao Diện Áp Dụng Mã & Đặt Hàng",
+      "format": "steps",
+      "description": "Các kịch bản kiểm thử luồng giao diện người dùng từ trang Checkout, áp dụng mã và đặt đơn hàng.",
+      "cases": [
+        {
+          "id": "TC-COUPON-001",
+          "title": "Kiểm tra áp dụng mã SAVE10 thành công khi tổng giỏ hàng đạt 300.000 ₫",
+          "purpose": "Xác nhận yêu cầu FR-09: người dùng đăng nhập được giảm 10% khi đơn hàng đạt đúng ngưỡng tối thiểu 300.000 ₫.",
+          "requirements": ["FR-09", "FR-08"],
+          "priority": "High",
+          "type": "Positive",
+          "method": "Manual",
+          "origin": "Both",
+          "preconditions": [
+            "Đã đăng nhập tài khoản test@eshop.com trên Chrome 129",
+            "Giỏ hàng có sản phẩm với tổng giá trị đúng 300.000 ₫",
+            "Mã SAVE10 đang active và user chưa từng sử dụng"
+          ],
+          "test_data": "Mã coupon = 'SAVE10', Tổng đơn hàng = 300.000 ₫",
+          "steps": [
+            {
+              "action": "Mở trang Thanh toán (http://localhost:5173/checkout) trên trình duyệt",
+              "expected": "Trang Checkout hiển thị danh sách sản phẩm, ô nhập 'Mã giảm giá' và tổng tiền 300.000 ₫"
+            },
+            {
+              "action": "Nhập mã 'SAVE10' vào ô 'Mã giảm giá' và bấm nút 'Áp dụng'",
+              "expected": "Hiển thị nhãn giảm giá 10% (-30.000 ₫); tổng thanh toán cập nhật còn 270.000 ₫"
+            },
+            {
+              "action": "Bấm nút 'Thanh toán' (Submit Order)",
+              "expected": "Hiển thị thông báo đặt hàng thành công; chuyển hướng sang Lịch sử đơn hàng; giỏ hàng được xóa sạch"
+            }
+          ],
+          "expected_result": "Đơn hàng được lưu vào CSDL với total_amount = 270.000 ₫; ghi nhận 1 bản ghi trong bảng coupon_usage.",
+          "cleanup": [
+            "Xóa đơn hàng vừa tạo trong bảng orders và bản ghi trong coupon_usage để khôi phục trạng thái sạch"
+          ],
+          "status": "Not run"
+        },
+        {
+          "id": "TC-COUPON-002",
+          "title": "Kiểm tra từ chối mã giảm giá khi nhập chuỗi ký tự không tồn tại (NOTEXIST99)",
+          "purpose": "Xác nhận điều kiện C1 của FR-09: từ chối và báo lỗi rõ ràng khi mã không có trong hệ thống.",
+          "requirements": ["FR-09"],
+          "priority": "High",
+          "type": "Negative",
+          "method": "Manual",
+          "origin": "Human",
+          "preconditions": [
+            "Đã đăng nhập tài khoản test@eshop.com",
+            "Đang ở trang Checkout với giỏ hàng có tổng tiền 500.000 ₫"
+          ],
+          "test_data": "Mã coupon = 'NOTEXIST99'",
+          "steps": [
+            {
+              "action": "Tại ô 'Mã giảm giá', nhập chuỗi 'NOTEXIST99'",
+              "expected": "Ô nhập hiển thị đúng chuỗi 'NOTEXIST99'"
+            },
+            {
+              "action": "Bấm nút 'Áp dụng'",
+              "expected": "Hiển thị thông báo lỗi màu đỏ 'Mã giảm giá không tồn tại'; tổng tiền giữ nguyên 500.000 ₫"
+            }
+          ],
+          "expected_result": "Không áp dụng giảm giá; không tạo bản ghi coupon_usage; tổng tiền thanh toán không thay đổi.",
+          "cleanup": [
+            "Xóa chuỗi nhập trong ô mã giảm giá"
+          ],
+          "status": "Not run"
+        },
+        {
+          "id": "TC-COUPON-003",
+          "title": "Kiểm tra từ chối mã EXPIRED khi mã đã hết hạn sử dụng (năm 2020)",
+          "purpose": "Xác nhận điều kiện C2 của FR-09: chặn các mã có ngày hết hạn nhỏ hơn ngày hiện tại.",
+          "requirements": ["FR-09"],
+          "priority": "High",
+          "type": "Negative",
+          "method": "Manual",
+          "origin": "Both",
+          "preconditions": [
+            "Đã đăng nhập tài khoản test@eshop.com",
+            "Đang ở trang Checkout với giỏ hàng 200.000 ₫",
+            "Mã EXPIRED có expired_at = '2020-01-01'"
+          ],
+          "test_data": "Mã coupon = 'EXPIRED'",
+          "steps": [
+            {
+              "action": "Nhập mã 'EXPIRED' vào ô 'Mã giảm giá'",
+              "expected": "Ô nhập hiển thị 'EXPIRED'"
+            },
+            {
+              "action": "Bấm nút 'Áp dụng'",
+              "expected": "Hiển thị thông báo lỗi 'Mã giảm giá đã hết hạn sử dụng'; không trừ tiền đơn hàng"
+            }
+          ],
+          "expected_result": "Tổng tiền thanh toán giữ nguyên 200.000 ₫; hệ thống không cho phép áp dụng mã hết hạn.",
+          "cleanup": [
+            "Xóa nội dung trong ô mã giảm giá"
+          ],
+          "status": "Not run"
+        }
+      ]
+    },
+    {
+      "id": "TS-02",
+      "name": "Ma Trận Phân Tích Giá Trị Biên Ngưỡng Đơn Hàng & Lượt Dùng",
+      "format": "matrix",
+      "description": "Kiểm thử biên 3-value cho ngưỡng giá trị đơn hàng min_order_amount (SAVE10 ngưỡng 300.000 ₫) và biên lượt dùng max_uses_per_user.",
+      "preconditions": [
+        "Đã đăng nhập tài khoản test@eshop.com",
+        "Đang ở trang Checkout (http://localhost:5173/checkout)"
+      ],
+      "procedure": [
+        {
+          "action": "Thiết lập giỏ hàng có tổng giá trị bằng cột 'Tổng Đơn'",
+          "expected": "Tổng tiền giỏ hàng hiển thị chính xác giá trị đã thiết lập"
+        },
+        {
+          "action": "Nhập mã tại cột 'Mã Coupon' vào ô mã giảm giá và bấm 'Áp dụng'",
+          "expected": "Hệ thống phản hồi đúng như cột 'Kết Quả Mong Đợi'"
+        }
+      ],
+      "columns": ["Mã Coupon", "Tổng Đơn", "Số Lần Đã Dùng", "Loại Test"],
+      "cleanup": [
+        "Làm mới trang Checkout và đưa giỏ hàng về trạng thái rỗng"
+      ],
+      "cases": [
+        {
+          "id": "TC-COUPON-010",
+          "title": "Kiểm tra mã SAVE10 với tổng đơn hàng 299.999 ₫ (ngay dưới biên tối thiểu)",
+          "inputs": {
+            "Mã Coupon": "SAVE10",
+            "Tổng Đơn": "299.999 ₫",
+            "Số Lần Đã Dùng": "0",
+            "Loại Test": "Boundary (min - 1)"
+          },
+          "expected_result": "Báo lỗi: 'Đơn hàng chưa đạt giá trị tối thiểu 300.000 ₫'; không giảm giá; tổng thanh toán 299.999 ₫",
+          "covers": "Biên dưới (Boundary - 1) của điều kiện C3 (FR-09)",
+          "requirements": ["FR-09"],
+          "priority": "High",
+          "status": "Not run"
+        },
+        {
+          "id": "TC-COUPON-011",
+          "title": "Kiểm tra mã SAVE10 với tổng đơn hàng 300.000 ₫ (chính xác trên biên tối thiểu)",
+          "inputs": {
+            "Mã Coupon": "SAVE10",
+            "Tổng Đơn": "300.000 ₫",
+            "Số Lần Đã Dùng": "0",
+            "Loại Test": "Boundary (min)"
+          },
+          "expected_result": "Áp dụng thành công; chiết khấu 10% (-30.000 ₫); tổng thanh toán cập nhật thành 270.000 ₫",
+          "covers": "Biên chính xác (Boundary) của điều kiện C3 (FR-09)",
+          "requirements": ["FR-09"],
+          "priority": "High",
+          "status": "Not run"
+        },
+        {
+          "id": "TC-COUPON-012",
+          "title": "Kiểm tra mã SAVE10 với tổng đơn hàng 300.001 ₫ (ngay trên biên tối thiểu)",
+          "inputs": {
+            "Mã Coupon": "SAVE10",
+            "Tổng Đơn": "300.001 ₫",
+            "Số Lần Đã Dùng": "0",
+            "Loại Test": "Boundary (min + 1)"
+          },
+          "expected_result": "Áp dụng thành công; chiết khấu 10% (-30.000 ₫); tổng thanh toán cập nhật thành 270.001 ₫",
+          "covers": "Biên trên liền kề (Boundary + 1) của điều kiện C3 (FR-09)",
+          "requirements": ["FR-09"],
+          "priority": "High",
+          "status": "Not run"
+        },
+        {
+          "id": "TC-COUPON-013",
+          "title": "Kiểm tra mã BIGBUY với tổng đơn hàng 500.000 ₫ (loại fixed giảm 50.000 ₫)",
+          "inputs": {
+            "Mã Coupon": "BIGBUY",
+            "Tổng Đơn": "500.000 ₫",
+            "Số Lần Đã Dùng": "0",
+            "Loại Test": "Valid Equivalence Class (Fixed)"
+          },
+          "expected_result": "Áp dụng thành công; chiết khấu cố định -50.000 ₫; tổng thanh toán cập nhật thành 450.000 ₫",
+          "covers": "Quy tắc giảm giá cố định (fixed) của FR-09",
+          "requirements": ["FR-09"],
+          "priority": "High",
+          "status": "Not run"
+        },
+        {
+          "id": "TC-COUPON-014",
+          "title": "Kiểm tra mã SAVE10 khi người dùng thử áp dụng lần thứ 2 (vượt giới hạn 1 lần/user)",
+          "inputs": {
+            "Mã Coupon": "SAVE10",
+            "Tổng Đơn": "400.000 ₫",
+            "Số Lần Đã Dùng": "1",
+            "Loại Test": "Boundary (max_uses)"
+          },
+          "expected_result": "Báo lỗi: 'Bạn đã sử dụng hết lượt cho mã giảm giá này'; không giảm giá; tổng thanh toán giữ 400.000 ₫",
+          "covers": "Biên vượt quá số lần sử dụng của điều kiện C5 (FR-09)",
+          "requirements": ["FR-09"],
+          "priority": "High",
+          "status": "Not run"
+        }
+      ]
+    }
+  ],
+  "review": {
+    "source": "Bản test case sơ bộ do AI sinh ra cho chức năng Coupon",
+    "summary": "AI sinh đủ các case cơ bản nhưng bỏ sót kiểm thử biên 299.999 ₫ và không phát hiện lỗ hổng cho phép chỉnh sửa trực tiếp tổng tiền trên giao diện Checkout.",
+    "items": [
+      {
+        "case_id": "TC-COUPON-001",
+        "scores": {
+          "accurate": 2,
+          "economical": 2,
+          "repeatable": 2,
+          "traceable": 2,
+          "appropriate": 2,
+          "self_standing": 2,
+          "self_cleaning": 2
+        },
+        "verdict": "Accept",
+        "defects": []
+      }
+    ],
+    "ai_review_check": {
+      "confirmed": [
+        "AI phát hiện đúng mã SAVE10 chỉ áp dụng được 1 lần cho mỗi tài khoản người dùng"
+      ],
+      "false_positives": [
+        "AI nhầm tưởng mã SAVE10 giảm 20% thay vì 10% như đặc tả CSDL"
+      ],
+      "missed": [
+        "AI bỏ sót việc kiểm tra xem Backend có tự tính lại tổng tiền hay nhận total_amount từ client (Lỗ hổng bảo mật FR-08)"
+      ]
+    }
+  },
+  "refactor": {
+    "source": "Bản nháp test case cũ dạng checklist",
+    "mapping": [
+      {
+        "old": "Test thử mã SAVE10 xem có giảm tiền không",
+        "new": ["TC-COUPON-001", "TC-COUPON-010", "TC-COUPON-011", "TC-COUPON-012"],
+        "change": "Tách 1 dòng mô tả chung thành 1 test case luồng UI và 3 test case kiểm thử biên 3-value (299.999 ₫, 300.000 ₫, 300.001 ₫)."
+      }
+    ]
+  },
+  "ai_declaration": {
+    "tool": "Gemini 3.8 Flash (Pair Programming Assistant)",
+    "prompts": [
+      "Bóc tách 5 điều kiện C1..C5 của tính năng FR-09 Coupon",
+      "Thiết kế bộ kiểm thử giá trị biên 3-value cho ngưỡng đơn hàng 300.000 ₫ của mã SAVE10"
+    ],
+    "changes": [
+      "Bổ sung giá trị biên cụ thể 299.999 ₫ và 300.001 ₫",
+      "Thêm bước dọn dẹp (cleanup) xóa bản ghi trong coupon_usage sau khi test đặt hàng thành công",
+      "Kiểm tra tính an toàn backend không nhận total_amount từ client theo FR-08"
+    ],
+    "verification": "Đã kiểm chứng kết quả mong đợi với bảng đặc tả README.md và API backend trong server.js."
+  }
+}

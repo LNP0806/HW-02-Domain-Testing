@@ -1,0 +1,691 @@
+{
+  "meta": {
+    "language": "vi",
+    "title": "Tài Liệu Thiết Kế Test Case — Hệ Thống EShop (4 Tính Năng HW02)",
+    "project": "EShop SUT",
+    "feature": "4 Tính Năng Bắt Buộc: FR-06 (Chi tiết SP), FR-11 (Lịch sử đơn), FR-15 (CRUD Sản phẩm Admin), Lịch sử đơn hàng Mobile",
+    "doc_id": "TCD-ESHOP-HW02-4FEAT",
+    "version": "1.0",
+    "date": "2026-10-17",
+    "author": "Sinh viên Kiểm thử Phần mềm (23120321)",
+    "reviewer": "Giảng viên & QA Lead",
+    "sut_version": "EShop v2.0 (React Web, React Admin, React Native Expo, Node Express, SQLite)",
+    "environment": "Chrome 129 trên Windows 11; Expo Go trên Android 14; Node.js v20 cổng 3000",
+    "scope": "Kiểm thử chức năng, miền tương đương và giá trị biên cho 4 tính năng đại diện cho 4 Pool theo yêu cầu đồ án HW02: Pool A (FR-06), Pool B (FR-11), Pool C (FR-15), Pool D (Lịch sử đơn hàng trên Mobile).",
+    "references": [
+      "Đặc tả yêu cầu hệ thống EShop (SRS v2.0)",
+      "Đặc tả API Backend EShop (api_specification.md)",
+      "Đề cương bài tập lớn HW02 — Domain Testing on EShop",
+      "ISTQB Foundation Level Syllabus v4.0"
+    ],
+    "assumptions": [
+      "CSDL ban đầu đã seed sẵn danh mục ('Điện thoại', 'Laptop', 'Phụ kiện'), sản phẩm mẫu (iPhone 15, Samsung S24, MacBook Pro) và tài khoản test@eshop.com.",
+      "Tài khoản admin@eshop.com có quyền quản trị viên (role: 'admin').",
+      "Ứng dụng Mobile kết nối thành công tới IP LAN máy chủ Backend."
+    ]
+  },
+  "requirements": [
+    {
+      "id": "FR-06",
+      "text": "Xem chi tiết sản phẩm: Hiển thị ảnh lớn, tên, giá ₫, mô tả, danh mục; ô nhập số lượng là số nguyên dương >= 1; nút Thêm vào giỏ có phản hồi trực quan (toast/badge); có breadcrumb điều hướng."
+    },
+    {
+      "id": "FR-11",
+      "text": "Xem lịch sử đơn hàng (User): Chỉ xem đơn của chính mình; hiển thị mã đơn, ngày đặt, tổng tiền, trạng thái tiếng Việt phân biệt màu sắc; quy tắc hủy đơn tuân thủ máy trạng thái FR-10."
+    },
+    {
+      "id": "FR-15",
+      "text": "Quản lý sản phẩm (Product CRUD - Admin): Thêm/Sửa/Xóa sản phẩm; tên bắt buộc tối đa 255 ký tự; giá bắt buộc là số dương > 0; danh mục bắt buộc; sửa 1 sản phẩm không làm đổi sản phẩm khác."
+    },
+    {
+      "id": "FR-20",
+      "text": "Ứng dụng Di Động (Mobile App): Trải nghiệm xem lịch sử đơn hàng trên React Native Expo; xử lý mất mạng/timeout, vuốt làm mới, đồng bộ trạng thái đơn và ẩn nút hủy khi đơn ở shipping."
+    }
+  ],
+  "suites": [
+    {
+      "id": "TS-01",
+      "name": "Pool A — FR-06: Xem Chi Tiết Sản Phẩm & Thao Tác Thêm Giỏ Hàng",
+      "format": "steps",
+      "description": "Kiểm thử luồng giao diện xem chi tiết sản phẩm và thêm vào giỏ hàng tại frontend-web/src/pages/ProductDetail.jsx.",
+      "cases": [
+        {
+          "id": "TC-PROD-001",
+          "title": "Kiểm tra hiển thị đầy đủ thông tin sản phẩm và breadcrumb tại trang chi tiết",
+          "purpose": "Xác nhận yêu cầu FR-06 và FR-23: hiển thị ảnh lớn, tên, giá ₫, mô tả, danh mục và thanh điều hướng breadcrumb.",
+          "requirements": ["FR-06"],
+          "priority": "High",
+          "type": "Positive",
+          "method": "Manual",
+          "origin": "Human",
+          "preconditions": [
+            "Mở trình duyệt Chrome 129 tại trang chủ http://localhost:5173",
+            "Sản phẩm ID = 1 ('iPhone 15 Pro Max', giá 30.000.000 ₫, danh mục 'Điện thoại') tồn tại trong SQLite"
+          ],
+          "test_data": "Product ID = 1",
+          "steps": [
+            {
+              "action": "Nhấn vào thẻ sản phẩm 'iPhone 15 Pro Max' trên trang chủ",
+              "expected": "Chuyển hướng đến URL /products/1; hiển thị ảnh lớn, tên sản phẩm 'iPhone 15 Pro Max', giá '30.000.000 ₫'"
+            },
+            {
+              "action": "Kiểm tra sự xuất hiện của tên danh mục 'Điện thoại' và thanh Breadcrumb",
+              "expected": "Hiển thị nhãn danh mục 'Điện thoại'; có thanh Breadcrumb 'Trang chủ > Điện thoại > iPhone 15 Pro Max'"
+            }
+          ],
+          "expected_result": "Giao diện hiển thị đầy đủ ảnh, tên, giá, mô tả, danh mục và breadcrumb theo đúng chuẩn FR-06 và FR-23.",
+          "cleanup": [
+            "Quay trở lại trang chủ"
+          ],
+          "status": "Not run",
+          "notes": "Kiểm tra xem SUT có mắc lỗi thiếu hiển thị danh mục và thiếu breadcrumb hay không."
+        },
+        {
+          "id": "TC-PROD-002",
+          "title": "Kiểm tra nút Thêm vào giỏ hàng hoạt động khi người dùng nhấn lần đầu tiên",
+          "purpose": "Xác nhận yêu cầu FR-06: bấm 'Thêm vào giỏ hàng' phải lập tức cập nhật giỏ hàng và hiển thị phản hồi trực quan.",
+          "requirements": ["FR-06"],
+          "priority": "High",
+          "type": "Positive",
+          "method": "Manual",
+          "origin": "Human",
+          "preconditions": [
+            "Đang ở trang chi tiết /products/1 với giỏ hàng rỗng (badge = 0)",
+            "Ô số lượng đang để mặc định là 1"
+          ],
+          "test_data": "Số lượng = 1",
+          "steps": [
+            {
+              "action": "Nhấn nút 'Thêm vào giỏ hàng' đúng 1 lần duy nhất",
+              "expected": "Nút hiển thị trạng thái 'Đã thêm'; badge giỏ hàng trên navbar lập tức tăng từ 0 lên 1"
+            },
+            {
+              "action": "Nhấn vào icon Giỏ hàng trên thanh navbar",
+              "expected": "Trang Giỏ hàng hiển thị 1 sản phẩm iPhone 15 Pro Max với số lượng 1"
+            }
+          ],
+          "expected_result": "Sản phẩm được thêm vào giỏ ngay lần nhấn đầu tiên; không đòi hỏi người dùng phải bấm đúp chuột.",
+          "cleanup": [
+            "Bấm nút xóa sản phẩm trong giỏ hàng để hoàn trả môi trường sạch"
+          ],
+          "status": "Not run",
+          "notes": "Bắt lỗi clickCount === 0 return trong ProductDetail.jsx."
+        }
+      ]
+    },
+    {
+      "id": "TS-02",
+      "name": "Pool A — FR-06: Ma Trận Phân Tích Giá Trị Biên Ô Nhập Số Lượng",
+      "format": "matrix",
+      "description": "Kiểm thử các giá trị biên 2-value / 3-value cho ô nhập số lượng sản phẩm tại trang ProductDetail (FR-06: số nguyên dương >= 1).",
+      "preconditions": [
+        "Đang ở trang chi tiết sản phẩm /products/1 trên Chrome 129",
+        "Giỏ hàng ban đầu đang rỗng"
+      ],
+      "procedure": [
+        {
+          "action": "Nhập giá trị tại cột 'Số Lượng Nhập' vào ô số lượng",
+          "expected": "Ô số lượng ghi nhận giá trị"
+        },
+        {
+          "action": "Nhấn nút 'Thêm vào giỏ hàng'",
+          "expected": "Hệ thống phản hồi đúng như cột 'Kết Quả Mong Đợi'"
+        }
+      ],
+      "columns": ["Số Lượng Nhập", "Kỹ Thuật Kiểm Thử", "Loại Lớp Phân Hoạch"],
+      "cleanup": [
+        "Xóa sản phẩm khỏi giỏ hàng sau mỗi ca kiểm thử thành công"
+      ],
+      "cases": [
+        {
+          "id": "TC-PROD-010",
+          "title": "Kiểm tra ô số lượng khi nhập giá trị 0 (ngay dưới biên tối thiểu 1)",
+          "inputs": {
+            "Số Lượng Nhập": "0",
+            "Kỹ Thuật Kiểm Thử": "Boundary Value (min - 1)",
+            "Loại Lớp Phân Hoạch": "Invalid Class"
+          },
+          "expected_result": "Bị từ chối thêm vào giỏ; báo lỗi yêu cầu số lượng tối thiểu là 1; giỏ hàng giữ nguyên 0 sản phẩm",
+          "covers": "Biên dưới (Boundary - 1) của ô số lượng (FR-06)",
+          "requirements": ["FR-06"],
+          "priority": "High",
+          "status": "Not run"
+        },
+        {
+          "id": "TC-PROD-011",
+          "title": "Kiểm tra ô số lượng khi nhập giá trị 1 (chính xác trên biên tối thiểu 1)",
+          "inputs": {
+            "Số Lượng Nhập": "1",
+            "Kỹ Thuật Kiểm Thử": "Boundary Value (min)",
+            "Loại Lớp Phân Hoạch": "Valid Class"
+          },
+          "expected_result": "Chấp nhận thêm vào giỏ hàng; badge giỏ hàng cập nhật tăng 1 đơn vị",
+          "covers": "Biên chính xác (Boundary) của ô số lượng (FR-06)",
+          "requirements": ["FR-06"],
+          "priority": "High",
+          "status": "Not run"
+        },
+        {
+          "id": "TC-PROD-012",
+          "title": "Kiểm tra ô số lượng khi nhập giá trị 2 (ngay trên biên tối thiểu 1)",
+          "inputs": {
+            "Số Lượng Nhập": "2",
+            "Kỹ Thuật Kiểm Thử": "Boundary Value (min + 1)",
+            "Loại Lớp Phân Hoạch": "Valid Class"
+          },
+          "expected_result": "Chấp nhận thêm vào giỏ hàng; badge giỏ hàng cập nhật tăng 2 đơn vị",
+          "covers": "Biên trên liền kề (Boundary + 1) của ô số lượng (FR-06)",
+          "requirements": ["FR-06"],
+          "priority": "High",
+          "status": "Not run"
+        },
+        {
+          "id": "TC-PROD-013",
+          "title": "Kiểm tra ô số lượng khi nhập giá trị âm (-1)",
+          "inputs": {
+            "Số Lượng Nhập": "-1",
+            "Kỹ Thuật Kiểm Thử": "Equivalence Partitioning (Negative)",
+            "Loại Lớp Phân Hoạch": "Invalid Class"
+          },
+          "expected_result": "Bị từ chối thêm vào giỏ; báo lỗi số lượng không được âm; giỏ hàng không thay đổi",
+          "covers": "Lớp không hợp lệ số âm của ô số lượng (FR-06)",
+          "requirements": ["FR-06"],
+          "priority": "High",
+          "status": "Not run"
+        }
+      ]
+    },
+    {
+      "id": "TS-03",
+      "name": "Pool B — FR-11: Xem Lịch Sử Đơn Hàng & Thao Tác Hủy Đơn",
+      "format": "steps",
+      "description": "Kiểm thử luồng xem lịch sử đơn hàng tại frontend-web/src/pages/Profile.jsx và cơ chế hủy đơn theo máy trạng thái FR-10.",
+      "cases": [
+        {
+          "id": "TC-ORDER-001",
+          "title": "Kiểm tra hiển thị danh sách đơn hàng và cách ly dữ liệu cá nhân khi người dùng truy cập trang Profile",
+          "purpose": "Xác nhận yêu cầu FR-11: người dùng chỉ xem được các đơn hàng của chính mình, hiển thị đầy đủ mã đơn, ngày đặt, tổng tiền ₫ và trạng thái tiếng Việt.",
+          "requirements": ["FR-11"],
+          "priority": "High",
+          "type": "Positive",
+          "method": "Manual",
+          "origin": "Human",
+          "preconditions": [
+            "Đăng nhập tài khoản test@eshop.com (User ID = 2)",
+            "CSDL SQLite có 2 đơn của user ID 2 và 1 đơn của user ID 1 (Admin)"
+          ],
+          "test_data": "User ID = 2",
+          "steps": [
+            {
+              "action": "Nhấn vào tab 'Hồ sơ' trên thanh navbar",
+              "expected": "Chuyển hướng đến /profile; khu vực 'Lịch sử đơn hàng' hiển thị danh sách đơn"
+            },
+            {
+              "action": "Quan sát các cột thông tin trong bảng lịch sử đơn hàng",
+              "expected": "Chỉ hiển thị các đơn của User ID 2; mỗi dòng có mã đơn #id, ngày đặt, tổng tiền định dạng '₫', trạng thái dịch tiếng Việt có màu sắc tương ứng"
+            }
+          ],
+          "expected_result": "Dữ liệu được cách ly tuyệt đối; không hiển thị đơn hàng của tài khoản khác; giao diện hiển thị đúng định dạng tiền tệ và nhãn trạng thái tiếng Việt.",
+          "cleanup": [
+            "Đăng xuất khỏi hệ thống"
+          ],
+          "status": "Not run"
+        },
+        {
+          "id": "TC-ORDER-002",
+          "title": "Kiểm tra hủy đơn hàng thành công khi đơn ở trạng thái pending (Chờ xác nhận)",
+          "purpose": "Xác nhận yêu cầu FR-10 và FR-11: người dùng được phép hủy đơn hàng khi đơn đang ở trạng thái pending.",
+          "requirements": ["FR-11"],
+          "priority": "High",
+          "type": "Positive",
+          "method": "Manual",
+          "origin": "Both",
+          "preconditions": [
+            "Đăng nhập tài khoản test@eshop.com",
+            "Có sẵn 1 đơn hàng ID #101 đang ở trạng thái 'pending'"
+          ],
+          "test_data": "Order ID = 101, Status = 'pending'",
+          "steps": [
+            {
+              "action": "Tại trang Profile, tìm dòng đơn hàng #101 và nhấn nút 'Hủy đơn'",
+              "expected": "Hiển thị thông báo 'Hủy đơn thành công!'"
+            },
+            {
+              "action": "Quan sát lại trạng thái của đơn hàng #101 trong bảng",
+              "expected": "Trạng thái đơn hàng chuyển sang 'Đã hủy' (màu đỏ); nút 'Hủy đơn' biến mất"
+            }
+          ],
+          "expected_result": "Đơn hàng chuyển thành trạng thái 'canceled' trong CSDL SQLite; không cho phép thao tác hủy lần 2.",
+          "cleanup": [
+            "Không cần dọn dẹp (đơn đã ở trạng thái kết thúc canceled)"
+          ],
+          "status": "Not run"
+        },
+        {
+          "id": "TC-ORDER-003",
+          "title": "Kiểm tra từ chối cho phép user hủy đơn khi đơn hàng đã chuyển sang shipping (Đang giao)",
+          "purpose": "Xác nhận yêu cầu FR-10 và FR-11: khi đơn hàng đã ở trạng thái shipping, User không được phép tự hủy (chỉ Admin mới có quyền).",
+          "requirements": ["FR-11"],
+          "priority": "High",
+          "type": "Security",
+          "method": "Manual",
+          "origin": "Human",
+          "preconditions": [
+            "Đăng nhập tài khoản test@eshop.com",
+            "Có sẵn đơn hàng #102 có trạng thái status = 'shipping'"
+          ],
+          "test_data": "Order ID = 102, Status = 'shipping'",
+          "steps": [
+            {
+              "action": "Mở trang /profile và tìm đến đơn hàng #102 đang ở trạng thái 'Đang giao'",
+              "expected": "Nút 'Hủy đơn' không được hiển thị cho đơn hàng này"
+            },
+            {
+              "action": "Nếu nút 'Hủy đơn' vẫn xuất hiện (lỗi UI), nhấn nút 'Hủy đơn' hoặc gửi request trực tiếp PUT /api/orders/102/cancel",
+              "expected": "Backend từ chối yêu cầu với HTTP 400 hoặc 403; thông báo lỗi 'Cannot cancel this order'"
+            }
+          ],
+          "expected_result": "Hệ thống chặn hoàn toàn thao tác hủy đơn từ User khi đơn đã giao vận; trạng thái trong CSDL giữ nguyên 'shipping'.",
+          "cleanup": [
+            "Giữ nguyên trạng thái đơn hàng để phục vụ kiểm thử Admin"
+          ],
+          "status": "Not run",
+          "notes": "Bắt lỗi nghiêm trọng trên SUT: Profile.jsx hiển thị nút hủy và server.js cho phép user hủy đơn shipping."
+        }
+      ]
+    },
+    {
+      "id": "TS-04",
+      "name": "Pool C — FR-15: Quản Lý Sản Phẩm CRUD Trong Web Admin",
+      "format": "steps",
+      "description": "Kiểm thử các chức năng Thêm, Sửa, Xóa sản phẩm và tính độc lập dữ liệu tại frontend-admin/src/App.jsx.",
+      "cases": [
+        {
+          "id": "TC-ADM-PROD-001",
+          "title": "Kiểm tra Admin thêm mới sản phẩm thành công với dữ liệu hợp lệ",
+          "purpose": "Xác nhận yêu cầu FR-15: Admin có token hợp lệ tạo thành công sản phẩm mới và hiển thị ngay trên bảng quản trị.",
+          "requirements": ["FR-15"],
+          "priority": "High",
+          "type": "Positive",
+          "method": "Manual",
+          "origin": "Human",
+          "preconditions": [
+            "Đăng nhập tài khoản admin@eshop.com trên Web Admin (http://localhost:5174)",
+            "Chuyển sang tab 'Sản phẩm'"
+          ],
+          "test_data": "Tên = 'Bàn phím cơ EShop Pro', Giá = 1.500.000 ₫, Danh mục = 'Phụ kiện'",
+          "steps": [
+            {
+              "action": "Điền 'Bàn phím cơ EShop Pro' vào ô Tên sản phẩm, '1500000' vào ô Giá, chọn danh mục 'Phụ kiện'",
+              "expected": "Các ô nhập nhận đúng giá trị"
+            },
+            {
+              "action": "Nhấn nút 'Lưu Sản Phẩm' (hoặc Thêm sản phẩm)",
+              "expected": "Form được reset về rỗng; danh sách sản phẩm bên dưới xuất hiện thêm dòng 'Bàn phím cơ EShop Pro' với giá 1.500.000 ₫"
+            }
+          ],
+          "expected_result": "Sản phẩm mới được lưu vào CSDL SQLite trong bảng products; xuất hiện đầy đủ trong danh sách quản trị.",
+          "cleanup": [
+            "Bấm nút 'Xóa' tại dòng sản phẩm vừa tạo để khôi phục trạng thái sạch"
+          ],
+          "status": "Not run"
+        },
+        {
+          "id": "TC-ADM-PROD-002",
+          "title": "Kiểm tra tính độc lập khi chỉnh sửa 1 sản phẩm không làm đổi tên các sản phẩm khác",
+          "purpose": "Xác nhận yêu cầu FR-15: Khi sửa một sản phẩm, chỉ sản phẩm đó bị thay đổi — các sản phẩm khác phải giữ nguyên.",
+          "requirements": ["FR-15"],
+          "priority": "High",
+          "type": "Security",
+          "method": "Manual",
+          "origin": "Human",
+          "preconditions": [
+            "Đăng nhập Web Admin; danh sách hiện có ít nhất 2 sản phẩm khác nhau: SP #1 ('iPhone 15 Pro Max') và SP #2 ('MacBook Pro M3')"
+          ],
+          "test_data": "Sửa SP #1 thành 'iPhone 15 Pro Max (Đã Sửa)'",
+          "steps": [
+            {
+              "action": "Nhấn nút 'Sửa' tại dòng sản phẩm #1",
+              "expected": "Dữ liệu SP #1 được load lên form chỉnh sửa"
+            },
+            {
+              "action": "Đổi tên thành 'iPhone 15 Pro Max (Đã Sửa)' và nhấn 'Lưu Sản Phẩm'",
+              "expected": "Hiển thị thông báo cập nhật thành công; chỉ có sản phẩm #1 đổi tên"
+            },
+            {
+              "action": "Quan sát tên của sản phẩm #2 ('MacBook Pro M3') trong bảng",
+              "expected": "Sản phẩm #2 vẫn giữ nguyên tên 'MacBook Pro M3', KHÔNG bị biến thành 'iPhone 15 Pro Max (Đã Sửa)'"
+            }
+          ],
+          "expected_result": "Chỉ duy nhất sản phẩm được chọn bị thay đổi; các sản phẩm khác trong danh sách không bị tác động.",
+          "cleanup": [
+            "Sửa lại tên sản phẩm #1 về giá trị ban đầu"
+          ],
+          "status": "Not run",
+          "notes": "Bắt lỗi mass-update bug tại App.jsx dòng 110-114 của frontend-admin."
+        }
+      ]
+    },
+    {
+      "id": "TS-05",
+      "name": "Pool C — FR-15: Ma Trận Phân Tích Giá Trị Biên Cho Tên & Giá Sản Phẩm Admin",
+      "format": "matrix",
+      "description": "Kiểm thử các giá trị biên 2-value và 3-value cho Tên sản phẩm (độ dài tối đa 255 ký tự) và Giá sản phẩm (phải là số dương > 0) theo FR-15.",
+      "preconditions": [
+        "Đăng nhập Web Admin (http://localhost:5174)",
+        "Đang mở form Thêm sản phẩm mới"
+      ],
+      "procedure": [
+        {
+          "action": "Nhập giá trị tại cột 'Tên Sản Phẩm' và 'Giá Sản Phẩm' vào form",
+          "expected": "Form nhận giá trị tương ứng"
+        },
+        {
+          "action": "Chọn danh mục 'Phụ kiện' và nhấn nút 'Lưu Sản Phẩm'",
+          "expected": "Hệ thống phản hồi đúng như cột 'Kết Quả Mong Đợi'"
+        }
+      ],
+      "columns": ["Tên Sản Phẩm", "Giá Sản Phẩm", "Loại Kiểm Thử Biên"],
+      "cleanup": [
+        "Xóa sản phẩm vừa tạo trong CSDL nếu ca kiểm thử tạo thành công"
+      ],
+      "cases": [
+        {
+          "id": "TC-ADM-PROD-010",
+          "title": "Kiểm tra giá sản phẩm khi nhập giá trị 0 ₫ (ngay dưới biên dương)",
+          "inputs": {
+            "Tên Sản Phẩm": "Sản phẩm Test Giá 0",
+            "Giá Sản Phẩm": "0",
+            "Loại Kiểm Thử Biên": "Boundary (price = 0)"
+          },
+          "expected_result": "Từ chối lưu sản phẩm; hiển thị thông báo lỗi yêu cầu giá phải là số dương lớn hơn 0",
+          "covers": "Biên dưới không hợp lệ của giá sản phẩm (FR-15)",
+          "requirements": ["FR-15"],
+          "priority": "High",
+          "status": "Not run"
+        },
+        {
+          "id": "TC-ADM-PROD-011",
+          "title": "Kiểm tra giá sản phẩm khi nhập giá trị 1 ₫ (chính xác trên biên dương tối thiểu)",
+          "inputs": {
+            "Tên Sản Phẩm": "Sản phẩm Test Giá 1",
+            "Giá Sản Phẩm": "1",
+            "Loại Kiểm Thử Biên": "Boundary (price = 1)"
+          },
+          "expected_result": "Lưu sản phẩm thành công; sản phẩm được tạo trong CSDL với giá 1 ₫",
+          "covers": "Biên dưới hợp lệ của giá sản phẩm (FR-15)",
+          "requirements": ["FR-15"],
+          "priority": "High",
+          "status": "Not run"
+        },
+        {
+          "id": "TC-ADM-PROD-012",
+          "title": "Kiểm tra giá sản phẩm khi nhập số âm (-50.000 ₫)",
+          "inputs": {
+            "Tên Sản Phẩm": "Sản phẩm Giá Âm",
+            "Giá Sản Phẩm": "-50000",
+            "Loại Kiểm Thử Biên": "Equivalence Partitioning (Negative)"
+          },
+          "expected_result": "Từ chối lưu sản phẩm; báo lỗi giá không được là số âm",
+          "covers": "Lớp không hợp lệ số âm của giá sản phẩm (FR-15)",
+          "requirements": ["FR-15"],
+          "priority": "High",
+          "status": "Not run"
+        },
+        {
+          "id": "TC-ADM-PROD-013",
+          "title": "Kiểm tra tên sản phẩm có độ dài chính xác 255 ký tự (trên biên trên tối đa)",
+          "inputs": {
+            "Tên Sản Phẩm": "SP_255_CHARACTERS_VALID_EXACTLY_MAX_LENGTH_AAAAA_BBBBB_CCCCC_DDDDD_EEEEE_FFFFF_GGGGG_HHHHH_IIIII_JJJJJ_KKKKK_LLLLL_MMMMM_NNNNN_OOOOO_PPPPP_QQQQQ_RRRRR_SSSSS_TTTTT_UUUUU_VVVVV_WWWWW_XXXXX_YYYYY_ZZZZZ_11111_22222_33333_44444_55555_66666_77777_88888_99999_00000_END",
+            "Giá Sản Phẩm": "100000",
+            "Loại Kiểm Thử Biên": "Boundary (length = 255)"
+          },
+          "expected_result": "Lưu sản phẩm thành công với đầy đủ chuỗi tên 255 ký tự",
+          "covers": "Biên trên tối đa (Boundary) của độ dài tên sản phẩm (FR-15)",
+          "requirements": ["FR-15"],
+          "priority": "High",
+          "status": "Not run"
+        },
+        {
+          "id": "TC-ADM-PROD-014",
+          "title": "Kiểm tra tên sản phẩm khi độ dài vượt quá 255 ký tự (256 ký tự)",
+          "inputs": {
+            "Tên Sản Phẩm": "SP_256_CHARACTERS_INVALID_EXCEED_MAX_LENGTH_AAAAA_BBBBB_CCCCC_DDDDD_EEEEE_FFFFF_GGGGG_HHHHH_IIIII_JJJJJ_KKKKK_LLLLL_MMMMM_NNNNN_OOOOO_PPPPP_QQQQQ_RRRRR_SSSSS_TTTTT_UUUUU_VVVVV_WWWWW_XXXXX_YYYYY_ZZZZZ_11111_22222_33333_44444_55555_66666_77777_88888_99999_00000_OVER",
+            "Giá Sản Phẩm": "100000",
+            "Loại Kiểm Thử Biên": "Boundary (length = 256)"
+          },
+          "expected_result": "Từ chối lưu sản phẩm; thông báo lỗi: 'Tên sản phẩm tối đa 255 ký tự'",
+          "covers": "Biên trên vượt ngưỡng (Boundary + 1) của độ dài tên sản phẩm (FR-15)",
+          "requirements": ["FR-15"],
+          "priority": "High",
+          "status": "Not run"
+        }
+      ]
+    },
+    {
+      "id": "TS-06",
+      "name": "Pool D — Mobile: Lịch Sử Đơn Hàng Trong Môi Trường Di Động",
+      "format": "steps",
+      "description": "Kiểm thử màn hình Lịch sử đơn hàng trên ứng dụng React Native Expo (frontend-mobile/App.js), đánh giá các kịch bản ngoại lệ mạng, đồng bộ và giao diện di động.",
+      "cases": [
+        {
+          "id": "TC-MOB-ORD-001",
+          "title": "Kiểm tra hiển thị danh sách đơn hàng và trạng thái tiếng Việt khi người dùng đăng nhập trên Mobile",
+          "purpose": "Xác nhận yêu cầu FR-20: người dùng đăng nhập xem được toàn bộ danh sách đơn hàng trên giao diện ứng dụng di động React Native.",
+          "requirements": ["FR-20"],
+          "priority": "High",
+          "type": "Positive",
+          "method": "Manual",
+          "origin": "Human",
+          "preconditions": [
+            "Mở ứng dụng EShop trên Expo Go (Android hoặc iOS)",
+            "Đã đăng nhập tài khoản test@eshop.com"
+          ],
+          "test_data": "Tài khoản test@eshop.com",
+          "steps": [
+            {
+              "action": "Nhấn vào tab 'Hồ sơ' tại thanh điều hướng của ứng dụng di động",
+              "expected": "Màn hình chuyển sang Profile; cuộn xuống phần 'Lịch sử đơn hàng'"
+            },
+            {
+              "action": "Quan sát từng thẻ đơn hàng hiển thị trên màn hình",
+              "expected": "Hiển thị thẻ Đơn #id, Ngày đặt (định dạng toLocaleDateString), Tổng tiền (định dạng formatMoney có '₫'), Trạng thái hiển thị tiếng Việt rõ ràng"
+            }
+          ],
+          "expected_result": "Giao diện hiển thị rõ ràng, nằm trọn trong vùng an toàn (Safe Area), không bị tràn viền hay che khuất bởi tai thỏ (Notch).",
+          "cleanup": [
+            "Không cần dọn dẹp"
+          ],
+          "status": "Not run"
+        },
+        {
+          "id": "TC-MOB-ORD-002",
+          "title": "Kiểm tra nút Hủy đơn trên Mobile tự động ẩn khi đơn hàng ở trạng thái shipping",
+          "purpose": "Xác nhận yêu cầu FR-20 và FR-10: ứng dụng di động chỉ hiển thị nút Hủy đơn khi đơn ở pending hoặc confirmed, ẩn khi đơn ở shipping.",
+          "requirements": ["FR-20"],
+          "priority": "High",
+          "type": "Positive",
+          "method": "Manual",
+          "origin": "Both",
+          "preconditions": [
+            "Tài khoản test@eshop.com có 1 đơn hàng #101 ('pending') và 1 đơn hàng #102 ('shipping')",
+            "Đang mở màn hình Lịch sử đơn hàng trên Mobile"
+          ],
+          "test_data": "Đơn #101 (pending), Đơn #102 (shipping)",
+          "steps": [
+            {
+              "action": "Quan sát thẻ đơn hàng #101 (trạng thái 'Chờ xác nhận')",
+              "expected": "Nút màu đỏ 'Hủy đơn' hiển thị rõ ràng"
+            },
+            {
+              "action": "Quan sát thẻ đơn hàng #102 (trạng thái 'Đang giao')",
+              "expected": "Nút 'Hủy đơn' KHÔNG xuất hiện (được ẩn hoàn toàn)"
+            }
+          ],
+          "expected_result": "Mobile tuân thủ nghiêm ngặt máy trạng thái FR-10; đối chiếu cho thấy tính nhất quán cao hơn so với phiên bản Web.",
+          "cleanup": [
+            "Không cần dọn dẹp"
+          ],
+          "status": "Not run",
+          "notes": "Minh chứng so sánh đối chiếu giữa Web (bị lỗi) và Mobile (đã ẩn nút)."
+        },
+        {
+          "id": "TC-MOB-ORD-003",
+          "title": "Kiểm tra xử lý lỗi khi mất kết nối mạng trong màn hình Lịch sử đơn hàng trên Mobile",
+          "purpose": "Xác nhận yêu cầu FR-20: khi mất mạng hoặc server backend không phản hồi, ứng dụng phải thông báo lỗi mạng thay vì hiển thị nhầm danh sách rỗng.",
+          "requirements": ["FR-20"],
+          "priority": "High",
+          "type": "Negative",
+          "method": "Manual",
+          "origin": "Human",
+          "preconditions": [
+            "Đang đăng nhập tài khoản test@eshop.com trên Mobile và đã có 2 đơn hàng trong CSDL"
+          ],
+          "test_data": "Ngắt kết nối Wi-Fi / Tắt server Backend",
+          "steps": [
+            {
+              "action": "Bật chế độ máy bay (Airplane Mode) trên thiết bị di động hoặc ngắt mạng Wi-Fi",
+              "expected": "Thiết bị mất hoàn toàn kết nối Internet tới Backend"
+            },
+            {
+              "action": "Nhấn chuyển sang tab 'Hồ sơ' để ứng dụng kích hoạt gọi fetchOrders",
+              "expected": "Hệ thống phải hiển thị thông báo: 'Không thể kết nối máy chủ. Vui lòng kiểm tra mạng' kèm nút 'Thử lại' (Retry)"
+            }
+          ],
+          "expected_result": "Ứng dụng phân biệt rõ ràng giữa lỗi kết nối mạng và trường hợp người dùng chưa từng mua hàng (empty state).",
+          "cleanup": [
+            "Bật lại kết nối Wi-Fi để khôi phục hoạt động bình thường"
+          ],
+          "status": "Not run",
+          "notes": "Bắt lỗi tại App.js dòng 180-183 khi catch error lại setOrders([]) gây hiển thị nhầm 'Bạn chưa có đơn hàng nào.'"
+        },
+        {
+          "id": "TC-MOB-ORD-004",
+          "title": "Kiểm tra hỗ trợ thao tác vuốt để làm mới (Pull-to-refresh) tại danh sách đơn hàng Mobile",
+          "purpose": "Xác nhận trải nghiệm người dùng di động (FR-20): người dùng có thể vuốt từ trên xuống để cập nhật trạng thái đơn hàng mới nhất từ server.",
+          "requirements": ["FR-20"],
+          "priority": "Medium",
+          "type": "Positive",
+          "method": "Manual",
+          "origin": "Human",
+          "preconditions": [
+            "Đang ở màn hình Profile trên Mobile với danh sách đơn hàng",
+            "Admin vừa cập nhật đơn hàng của user từ 'pending' sang 'confirmed' trên Web Admin"
+          ],
+          "test_data": "Thao tác vuốt xuống (Pull-to-refresh)",
+          "steps": [
+            {
+              "action": "Dùng ngón tay vuốt từ trên đỉnh màn hình danh sách đơn hàng xuống dưới",
+              "expected": "Xuất hiện biểu tượng loading xoay tròn (RefreshControl) báo hiệu đang cập nhật dữ liệu"
+            },
+            {
+              "action": "Thả tay ra và chờ ứng dụng hoàn tất fetchOrders",
+              "expected": "Trạng thái đơn hàng lập tức cập nhật từ 'Chờ xác nhận' sang 'Đã xác nhận' mà không cần phải thoát màn hình hoặc đăng nhập lại"
+            }
+          ],
+          "expected_result": "Hỗ trợ chuẩn thao tác vuốt làm mới đặc thù của nền tảng di động.",
+          "cleanup": [
+            "Không cần dọn dẹp"
+          ],
+          "status": "Not run",
+          "notes": "Kiểm tra xem ScrollView trong App.js có prop refreshControl hay bị thiếu."
+        }
+      ]
+    }
+  ],
+  "review": {
+    "source": "Bản thiết kế test case ban đầu cho 4 tính năng FR-06, FR-11, FR-15 và Mobile Order History",
+    "summary": "Bộ test case đã bao phủ đầy đủ 4 pool theo yêu cầu HW02, bóc tách chính xác các lỗi nghiệp vụ trong code frontend và backend.",
+    "items": [
+      {
+        "case_id": "TC-PROD-002",
+        "scores": {
+          "accurate": 2, "economical": 2, "repeatable": 2, "traceable": 2,
+          "appropriate": 2, "self_standing": 2, "self_cleaning": 2
+        },
+        "verdict": "Accept",
+        "defects": []
+      },
+      {
+        "case_id": "TC-ORDER-003",
+        "scores": {
+          "accurate": 2, "economical": 2, "repeatable": 2, "traceable": 2,
+          "appropriate": 2, "self_standing": 2, "self_cleaning": 2
+        },
+        "verdict": "Accept",
+        "defects": []
+      },
+      {
+        "case_id": "TC-ADM-PROD-002",
+        "scores": {
+          "accurate": 2, "economical": 2, "repeatable": 2, "traceable": 2,
+          "appropriate": 2, "self_standing": 2, "self_cleaning": 2
+        },
+        "verdict": "Accept",
+        "defects": []
+      },
+      {
+        "case_id": "TC-MOB-ORD-003",
+        "scores": {
+          "accurate": 2, "economical": 2, "repeatable": 2, "traceable": 2,
+          "appropriate": 2, "self_standing": 2, "self_cleaning": 2
+        },
+        "verdict": "Accept",
+        "defects": []
+      }
+    ],
+    "ai_review_check": {
+      "confirmed": [
+        "Xác nhận lỗi click đúp trong ProductDetail.jsx (clickCount === 0 return)",
+        "Xác nhận lỗi Web cho phép hủy đơn shipping trong Profile.jsx và server.js",
+        "Xác nhận lỗi mass-update trong frontend-admin/src/App.jsx đổi tên toàn bộ sản phẩm",
+        "Xác nhận lỗi Mobile nuốt ngoại lệ mạng thành danh sách đơn rỗng trong App.js"
+      ],
+      "false_positives": [
+        "AI trước đó cho rằng ô số lượng có thể nhập chữ — thực tế input type='number' của trình duyệt chặn phần lớn ký tự chữ, nhưng vẫn cho nhập dấu trừ và số e"
+      ],
+      "missed": [
+        "AI ban đầu bỏ sót việc kiểm tra thuộc tính Breadcrumb theo quy định FR-23 tại trang chi tiết sản phẩm"
+      ]
+    }
+  },
+  "refactor": {
+    "source": "Bản checklist sơ bộ ban đầu của sinh viên",
+    "mapping": [
+      {
+        "old": "Test xem chi tiết và thêm vào giỏ",
+        "new": ["TC-PROD-001", "TC-PROD-002", "TC-PROD-010", "TC-PROD-011", "TC-PROD-012", "TC-PROD-013"],
+        "change": "Tách thành 2 ca kiểm thử luồng UI và 4 ca ma trận BVA cho ô số lượng (0, 1, 2, -1)."
+      },
+      {
+        "old": "Test lịch sử đơn hàng và hủy đơn",
+        "new": ["TC-ORDER-001", "TC-ORDER-002", "TC-ORDER-003"],
+        "change": "Tách riêng ca kiểm thử cách ly dữ liệu user, ca hủy đơn hợp lệ (pending) và ca kiểm tra an toàn hủy đơn cấm (shipping)."
+      },
+      {
+        "old": "Admin thêm và sửa sản phẩm",
+        "new": ["TC-ADM-PROD-001", "TC-ADM-PROD-002", "TC-ADM-PROD-010", "TC-ADM-PROD-011", "TC-ADM-PROD-012", "TC-ADM-PROD-013", "TC-ADM-PROD-014"],
+        "change": "Tách thành ca kiểm tra lỗi mass update và ma trận BVA 3-value cho giá sản phẩm (0, 1, -50k) và độ dài tên (255, 256 ký tự)."
+      },
+      {
+        "old": "Test app mobile xem đơn hàng",
+        "new": ["TC-MOB-ORD-001", "TC-MOB-ORD-002", "TC-MOB-ORD-003", "TC-MOB-ORD-004"],
+        "change": "Bổ sung các ca kiểm thử đặc thù di động: hiển thị safe area, đối chiếu ẩn nút hủy với web, ngắt mạng/timeout và pull-to-refresh."
+      }
+    ]
+  },
+  "ai_declaration": {
+    "tool": "Gemini 3.8 Flash (Pair Programming Assistant via Antigravity)",
+    "prompts": [
+      "Bóc tách biến miền và phân hoạch tương đương cho 4 tính năng: FR-06, FR-11, FR-15 và Lịch sử đơn hàng Mobile",
+      "Thiết kế ca kiểm thử giá trị biên 3-value cho ô số lượng FR-06, giá/tên sản phẩm FR-15 và ma trận chuyển trạng thái FR-11",
+      "Phân tích source code frontend-web, frontend-admin, frontend-mobile và backend để tìm các lỗi có chủ đích"
+    ],
+    "changes": [
+      "Thêm các ca kiểm thử bám sát code thực tế phát hiện 4 bug lớn: first click bug ở FR-06, cancel shipping bug ở FR-11, mass update bug ở FR-15, và network catch empty state bug ở Mobile",
+      "Bổ sung giá trị kiểm thử biên cụ thể cho độ dài tên sản phẩm 255/256 ký tự và giá 0/1 ₫",
+      "Thêm bước dọn dẹp (cleanup) cho các test case tạo sản phẩm và thêm giỏ hàng"
+    ],
+    "verification": "Đã kiểm chứng kết quả mong đợi với mã nguồn tại ProductDetail.jsx, Profile.jsx, App.jsx, App.js và server.js."
+  }
+}

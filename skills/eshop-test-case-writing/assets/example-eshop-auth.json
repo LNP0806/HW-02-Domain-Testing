@@ -1,0 +1,275 @@
+{
+  "meta": {
+    "language": "vi",
+    "title": "Tài Liệu Test Case — Hệ Thống EShop (Đăng Ký, Đăng Nhập & Khóa Tài Khoản)",
+    "project": "EShop SUT",
+    "feature": "Pool A: Quản Lý Tài Khoản & Xác Thực (FR-01, FR-02)",
+    "doc_id": "TCD-ESHOP-AUTH-01",
+    "version": "1.0",
+    "date": "2026-10-17",
+    "author": "Sinh viên Kiểm thử Phần mềm (23120321)",
+    "reviewer": "QA Lead",
+    "sut_version": "EShop v2.0 (React Web, Express API, SQLite)",
+    "environment": "Google Chrome 129 trên Windows 11; Backend Node.js v20 cổng 3000",
+    "scope": "Kiểm thử chức năng đăng ký tài khoản (FR-01), đăng nhập và cơ chế khóa tạm thời 30 giây khi nhập sai liên tiếp từ 3 lần (FR-02).",
+    "references": [
+      "Đặc tả hệ thống EShop (SRS v2.0)",
+      "Đặc tả API Xác thực (api_specification.md)",
+      "ISTQB Foundation Level Syllabus"
+    ],
+    "assumptions": [
+      "Tài khoản test@eshop.com đã tồn tại trong SQLite để kiểm thử đăng nhập và khóa tài khoản.",
+      "Email chưa đăng ký 'newuser@eshop.com' được dùng cho test case đăng ký mới."
+    ]
+  },
+  "requirements": [
+    {
+      "id": "FR-01",
+      "text": "Đăng ký tài khoản: Họ Tên, Email hợp lệ và duy nhất, Mật khẩu mạnh tối thiểu 8 ký tự (chữ hoa, chữ thường, số, ký tự đặc biệt @$!%*?&), trường Xác nhận mật khẩu phải khớp; đăng ký thành công chuyển sang trang Đăng nhập."
+    },
+    {
+      "id": "FR-02",
+      "text": "Đăng nhập & Khóa tài khoản: Nhập Email và Mật khẩu; sau mỗi lần sai tăng bộ đếm lên đúng 1; nếu sai từ 3 lần trở lên liên tiếp, tài khoản bị khóa tạm thời 30 giây; đăng nhập thành công trả về JWT Token."
+    }
+  ],
+  "suites": [
+    {
+      "id": "TS-01",
+      "name": "Luồng Giao Diện Đăng Nhập & Cơ Chế Khóa 30 Giây",
+      "format": "steps",
+      "description": "Kiểm thử giao diện đăng nhập và kích hoạt trạng thái khóa tài khoản sau 3 lần nhập sai liên tiếp.",
+      "cases": [
+        {
+          "id": "TC-AUTH-001",
+          "title": "Kiểm tra đăng nhập thành công với thông tin tài khoản hợp lệ (test@eshop.com)",
+          "purpose": "Xác nhận yêu cầu FR-02: đăng nhập thành công trả về token JWT và chuyển về trang chủ.",
+          "requirements": ["FR-02"],
+          "priority": "High",
+          "type": "Positive",
+          "method": "Manual",
+          "origin": "Human",
+          "preconditions": [
+            "Tài khoản test@eshop.com / Test1234! tồn tại trong CSDL và không bị khóa",
+            "Trình duyệt Chrome mở tại trang http://localhost:5173/login"
+          ],
+          "test_data": "Email = 'test@eshop.com', Password = 'Test1234!'",
+          "steps": [
+            {
+              "action": "Nhập 'test@eshop.com' vào ô Email",
+              "expected": "Ô Email hiển thị đúng 'test@eshop.com'"
+            },
+            {
+              "action": "Nhập 'Test1234!' vào ô Mật khẩu",
+              "expected": "Ô Mật khẩu nhận giá trị (ký tự được che dạng password)"
+            },
+            {
+              "action": "Nhấn nút 'Đăng nhập'",
+              "expected": "Đăng nhập thành công; lưu JWT token vào localStorage; chuyển hướng về trang chủ '/'; thanh navbar hiển thị tên 'Test User'"
+            }
+          ],
+          "expected_result": "Đăng nhập thành công; reset login_attempts về 0 trong CSDL SQLite.",
+          "cleanup": [
+            "Nhấn nút 'Đăng xuất' trên navbar để kết thúc phiên làm việc"
+          ],
+          "status": "Not run"
+        },
+        {
+          "id": "TC-AUTH-002",
+          "title": "Kiểm tra khóa tài khoản 30 giây khi nhập sai mật khẩu 3 lần liên tiếp",
+          "purpose": "Xác nhận yêu cầu FR-02: tài khoản bị khóa tạm thời 30 giây khi login_attempts đạt ngưỡng 3.",
+          "requirements": ["FR-02"],
+          "priority": "High",
+          "type": "Negative",
+          "method": "Manual",
+          "origin": "Both",
+          "preconditions": [
+            "Tài khoản test@eshop.com hiện có login_attempts = 0",
+            "Đang mở trang http://localhost:5173/login"
+          ],
+          "test_data": "Email = 'test@eshop.com', Mật khẩu sai = 'WrongPass123!'",
+          "steps": [
+            {
+              "action": "Nhập 'test@eshop.com' và mật khẩu sai lần 1 rồi bấm Đăng nhập",
+              "expected": "Báo lỗi đăng nhập thất bại; login_attempts trong DB tăng lên 1"
+            },
+            {
+              "action": "Nhập tiếp mật khẩu sai lần 2 rồi bấm Đăng nhập",
+              "expected": "Báo lỗi đăng nhập thất bại; login_attempts trong DB tăng lên 2"
+            },
+            {
+              "action": "Nhập tiếp mật khẩu sai lần 3 rồi bấm Đăng nhập",
+              "expected": "Hệ thống thông báo: Tài khoản bị tạm khóa 30 giây do đăng nhập sai nhiều lần; DB cập nhật locked_until = hiện tại + 30s"
+            },
+            {
+              "action": "Ngay lập tức nhập đúng mật khẩu 'Test1234!' lần 4 trong vòng 30s đó và bấm Đăng nhập",
+              "expected": "Vẫn bị từ chối đăng nhập; thông báo tài khoản đang bị khóa, vui lòng thử lại sau"
+            }
+          ],
+          "expected_result": "Tài khoản bị khóa chính xác trong 30 giây; sau 30 giây đăng nhập lại bằng mật khẩu đúng thành công.",
+          "cleanup": [
+            "Chờ qua 30 giây và reset login_attempts = 0 trong CSDL SQLite"
+          ],
+          "status": "Not run"
+        }
+      ]
+    },
+    {
+      "id": "TS-02",
+      "name": "Ma Trận Kiểm Thử Miền & Phân Tích Biên Cho Mật Khẩu Đăng Ký",
+      "format": "matrix",
+      "description": "Kiểm thử các lớp tương đương và giá trị biên của chính sách mật khẩu mạnh (FR-01: tối thiểu 8 ký tự, chữ hoa, thường, số, ký tự đặc biệt).",
+      "preconditions": [
+        "Mở trang Đăng ký (http://localhost:5173/register)",
+        "Điền Họ Tên 'Nguyen Van B' và Email 'valid_user_b@eshop.com'"
+      ],
+      "procedure": [
+        {
+          "action": "Nhập giá trị tại cột 'Mật Khẩu' vào ô Mật khẩu",
+          "expected": "Ô Mật khẩu nhận chuỗi ký tự"
+        },
+        {
+          "action": "Nhập giá trị tại cột 'Xác Nhận Mật Khẩu' vào ô Xác nhận",
+          "expected": "Ô Xác nhận nhận chuỗi ký tự tương ứng"
+        },
+        {
+          "action": "Bấm nút 'Đăng Ký'",
+          "expected": "Hệ thống phản hồi đúng như cột 'Kết Quả Mong Đợi'"
+        }
+      ],
+      "columns": ["Mật Khẩu", "Xác Nhận Mật Khẩu", "Phân Hoạch / Biên Kiểm Thử", "Loại Lớp"],
+      "cleanup": [
+        "Xóa người dùng mới tạo trong bảng users (nếu đăng ký thành công)"
+      ],
+      "cases": [
+        {
+          "id": "TC-AUTH-010",
+          "title": "Kiểm tra mật khẩu có độ dài 7 ký tự (ngay dưới biên tối thiểu 8)",
+          "inputs": {
+            "Mật Khẩu": "Abc1!xy",
+            "Xác Nhận Mật Khẩu": "Abc1!xy",
+            "Phân Hoạch / Biên Kiểm Thử": "Độ dài = 7 ký tự (Boundary - 1)",
+            "Loại Lớp": "Invalid Class"
+          },
+          "expected_result": "Từ chối đăng ký; thông báo lỗi: 'Mật khẩu phải dài tối thiểu 8 ký tự'",
+          "covers": "Biên dưới (Boundary - 1) của độ dài mật khẩu (FR-01)",
+          "requirements": ["FR-01"],
+          "priority": "High",
+          "status": "Not run"
+        },
+        {
+          "id": "TC-AUTH-011",
+          "title": "Kiểm tra mật khẩu có độ dài 8 ký tự (chính xác trên biên tối thiểu)",
+          "inputs": {
+            "Mật Khẩu": "Abc1!xyz",
+            "Xác Nhận Mật Khẩu": "Abc1!xyz",
+            "Phân Hoạch / Biên Kiểm Thử": "Độ dài = 8 ký tự có đủ 4 loại ký tự (Boundary)",
+            "Loại Lớp": "Valid Class"
+          },
+          "expected_result": "Chấp nhận mật khẩu; đăng ký thành công và chuyển hướng sang trang Đăng nhập",
+          "covers": "Biên chính xác (Boundary) của độ dài mật khẩu (FR-01)",
+          "requirements": ["FR-01"],
+          "priority": "High",
+          "status": "Not run"
+        },
+        {
+          "id": "TC-AUTH-012",
+          "title": "Kiểm tra mật khẩu có độ dài 9 ký tự (ngay trên biên tối thiểu)",
+          "inputs": {
+            "Mật Khẩu": "Abc1!xyzt",
+            "Xác Nhận Mật Khẩu": "Abc1!xyzt",
+            "Phân Hoạch / Biên Kiểm Thử": "Độ dài = 9 ký tự có đủ 4 loại ký tự (Boundary + 1)",
+            "Loại Lớp": "Valid Class"
+          },
+          "expected_result": "Chấp nhận mật khẩu; đăng ký thành công và chuyển hướng sang trang Đăng nhập",
+          "covers": "Biên trên liền kề (Boundary + 1) của độ dài mật khẩu (FR-01)",
+          "requirements": ["FR-01"],
+          "priority": "High",
+          "status": "Not run"
+        },
+        {
+          "id": "TC-AUTH-013",
+          "title": "Kiểm tra từ chối mật khẩu khi mật khẩu dài 10 ký tự nhưng thiếu ký tự đặc biệt",
+          "inputs": {
+            "Mật Khẩu": "Abc1234567",
+            "Xác Nhận Mật Khẩu": "Abc1234567",
+            "Phân Hoạch / Biên Kiểm Thử": "Thiếu ký tự đặc biệt (@$!%*?&)",
+            "Loại Lớp": "Invalid Class"
+          },
+          "expected_result": "Từ chối đăng ký; thông báo lỗi yêu cầu có ít nhất 1 ký tự đặc biệt",
+          "covers": "Lớp không hợp lệ về thành phần ký tự đặc biệt của FR-01",
+          "requirements": ["FR-01"],
+          "priority": "High",
+          "status": "Not run"
+        },
+        {
+          "id": "TC-AUTH-014",
+          "title": "Kiểm tra từ chối khi Xác nhận mật khẩu không khớp với Mật khẩu đã nhập",
+          "inputs": {
+            "Mật Khẩu": "Password123!",
+            "Xác Nhận Mật Khẩu": "Password456!",
+            "Phân Hoạch / Biên Kiểm Thử": "Xác nhận mật khẩu sai khác",
+            "Loại Lớp": "Invalid Class"
+          },
+          "expected_result": "Từ chối đăng ký; thông báo lỗi: 'Mật khẩu xác nhận không khớp'",
+          "covers": "Quy tắc kiểm tra khớp trường xác nhận mật khẩu của FR-01",
+          "requirements": ["FR-01"],
+          "priority": "High",
+          "status": "Not run"
+        }
+      ]
+    }
+  ],
+  "review": {
+    "source": "Bản nháp test case do AI sinh ra cho Authentication",
+    "summary": "AI bỏ sót kiểm thử độ trễ khóa 30 giây và không nhận diện lỗi regex trong mã nguồn Register.jsx yêu cầu khoảng trắng thay vì ký tự đặc biệt.",
+    "items": [
+      {
+        "case_id": "TC-AUTH-002",
+        "scores": {
+          "accurate": 2,
+          "economical": 2,
+          "repeatable": 2,
+          "traceable": 2,
+          "appropriate": 2,
+          "self_standing": 2,
+          "self_cleaning": 2
+        },
+        "verdict": "Accept",
+        "defects": []
+      }
+    ],
+    "ai_review_check": {
+      "confirmed": [
+        "AI thiết kế đúng kịch bản 3 lần sai liên tiếp kích hoạt khóa tài khoản"
+      ],
+      "false_positives": [
+        "AI cho rằng khóa tài khoản vĩnh viễn cần admin mở — sai, đặc tả FR-02 ghi rõ khóa 30 giây"
+      ],
+      "missed": [
+        "AI không phát hiện ra file Register.jsx trên Frontend thực tế hoàn toàn thiếu trường Xác nhận mật khẩu"
+      ]
+    }
+  },
+  "refactor": {
+    "source": "Tài liệu test cũ không phân biệt biên mật khẩu",
+    "mapping": [
+      {
+        "old": "Test tạo tài khoản với pass yếu",
+        "new": ["TC-AUTH-010", "TC-AUTH-011", "TC-AUTH-012", "TC-AUTH-013"],
+        "change": "Chuyển thành ma trận BVA 3-value: 7 ký tự (fail), 8 ký tự (pass), 9 ký tự (pass) và case thiếu ký tự đặc biệt."
+      }
+    ]
+  },
+  "ai_declaration": {
+    "tool": "Gemini 3.8 Flash (Pair Programming Assistant)",
+    "prompts": [
+      "Bóc tách biến miền cho mật khẩu mạnh theo FR-01",
+      "Thiết kế ca kiểm thử khóa tài khoản 30s sau 3 lần sai cho FR-02"
+    ],
+    "changes": [
+      "Kiểm tra thực tế source code Register.jsx và phát hiện bug regex khoảng trắng",
+      "Bổ sung bước dọn dẹp xóa người dùng mới tạo trong database.sqlite"
+    ],
+    "verification": "Đã chạy đối chiếu trực tiếp trên backend Node.js và CSDL SQLite."
+  }
+}

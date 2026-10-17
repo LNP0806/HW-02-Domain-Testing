@@ -1,0 +1,91 @@
+{
+  "meta": {
+    "language": "vi",
+    "title": "Tài liệu test case — Chương trình Tam giác",
+    "project": "Triangle Web",
+    "feature": "Phân loại và vẽ tam giác",
+    "doc_id": "TCD-TRI-01",
+    "version": "1.0",
+    "date": "2026-10-14",
+    "author": "Nhóm 3 — Kiểm thử phần mềm",
+    "reviewer": "",
+    "sut_version": "Triangle Web v1.0",
+    "environment": "Chrome 129 trên Windows 11, độ phân giải 1920×1080",
+    "scope": "Kiểm thử chức năng phân loại tam giác (Equilateral, Isosceles, Scalene, Right, Invalid) và vẽ tam giác trong khung canvas của trang Triangle. Không bao gồm hiệu năng và bảo mật.",
+    "references": ["Đặc tả Triangle (SRS-Triangle v1.0)", "Myers (1979), The Art of Software Testing"],
+    "assumptions": ["Cạnh hợp lệ là số thực dương; tam giác vuông được ưu tiên hiển thị 'RIGHT' thay vì 'SCALENE'."]
+  },
+  "requirements": [
+    {"id": "SRS-3.1", "text": "Khi nhấn Draw!, hệ thống hiển thị nhãn loại tam giác: EQUILATERAL, ISOSCELES, SCALENE hoặc RIGHT."},
+    {"id": "SRS-3.2", "text": "Hệ thống từ chối cạnh bằng 0 hoặc âm và hiển thị 'INVALID'."},
+    {"id": "SRS-3.3", "text": "Hệ thống hiển thị 'INVALID' khi ba cạnh không thỏa bất đẳng thức tam giác."},
+    {"id": "SRS-3.4", "text": "Hệ thống hiển thị thông báo 'Invalid input' khi một ô để trống hoặc không phải số."},
+    {"id": "SRS-3.5", "text": "Tam giác hợp lệ được vẽ nằm trọn trong khung canvas màu xám."}
+  ],
+  "suites": [
+    {
+      "id": "TS-01",
+      "name": "Phân loại và vẽ — luồng giao diện",
+      "format": "steps",
+      "description": "Các case đi qua giao diện đầy đủ, kiểm chứng cả nhãn và hình vẽ.",
+      "cases": [
+        {
+          "id": "TC-TRI-01",
+          "title": "Kiểm tra phân loại và vẽ tam giác với bộ cạnh lệch (6, 5, 3)",
+          "purpose": "Xác nhận nhãn SCALENE và hình vẽ đúng cho tam giác thường.",
+          "requirements": ["SRS-3.1", "SRS-3.5"],
+          "priority": "High",
+          "type": "Positive",
+          "method": "Manual",
+          "preconditions": ["Trình duyệt Chrome 129 đã mở", "Trang Triangle đã tải xong, ba ô trống"],
+          "test_data": "Side 1 = 6, Side 2 = 5, Side 3 = 3",
+          "steps": [
+            {"action": "Mở trang Triangle trên Chrome", "expected": "Trang tải xong; ba ô Side 1, Side 2, Side 3 trống và nút Draw! hiển thị"},
+            {"action": "Nhập 6, 5, 3 lần lượt vào Side 1, Side 2, Side 3", "expected": "Các ô hiển thị đúng giá trị 6, 5, 3 như đã gõ"},
+            {"action": "Nhấn nút Draw!", "expected": "Nhãn 'SCALENE' hiển thị; một tam giác được vẽ nằm trọn trong khung xám"}
+          ],
+          "expected_result": "Nhãn 'SCALENE' và tam giác nằm trọn trong khung xám.",
+          "cleanup": ["Xóa ba ô nhập (không có dữ liệu được lưu)"],
+          "status": "Not run"
+        },
+        {
+          "id": "TC-TRI-02",
+          "title": "Kiểm tra nút Draw! khi ô Side 2 để trống",
+          "purpose": "Xác nhận hệ thống báo lỗi nhập liệu khi thiếu giá trị.",
+          "requirements": ["SRS-3.4"],
+          "priority": "Medium",
+          "type": "Negative",
+          "method": "Manual",
+          "preconditions": ["Trang Triangle đã tải xong trên Chrome 129, ba ô trống"],
+          "test_data": "Side 1 = 2, Side 2 = (trống), Side 3 = 3",
+          "steps": [
+            {"action": "Nhập 2 vào Side 1 và 3 vào Side 3, để trống Side 2", "expected": "Side 1 hiển thị 2, Side 3 hiển thị 3, Side 2 trống"},
+            {"action": "Nhấn nút Draw!", "expected": "Thông báo 'Invalid input' hiển thị; không có tam giác nào được vẽ trong khung xám"}
+          ],
+          "expected_result": "Thông báo 'Invalid input'; khung xám vẫn trống.",
+          "status": "Not run"
+        }
+      ]
+    },
+    {
+      "id": "TS-02",
+      "name": "Phân loại — ma trận dữ liệu",
+      "format": "matrix",
+      "description": "Cùng một quy trình, chỉ dữ liệu thay đổi.",
+      "preconditions": ["Trang Triangle đã tải xong trên Chrome 129"],
+      "procedure": [
+        {"action": "Nhập giá trị của dòng vào Side 1, Side 2, Side 3", "expected": "Các ô hiển thị đúng giá trị"},
+        {"action": "Nhấn nút Draw!", "expected": "Nhãn/thông báo khớp cột Kết quả mong đợi của dòng"},
+        {"action": "Xóa ba ô trước khi chạy dòng tiếp theo", "expected": "Ba ô trống"}
+      ],
+      "columns": ["Side 1", "Side 2", "Side 3"],
+      "cases": [
+        {"id": "TC-TRI-10", "title": "Xác minh phân loại khi ba cạnh tạo tam giác vuông (3, 4, 5)", "inputs": {"Side 1": "3", "Side 2": "4", "Side 3": "5"}, "expected_result": "RIGHT", "covers": "Lớp hợp lệ — vuông", "requirements": ["SRS-3.1"], "priority": "High", "status": "Not run"},
+        {"id": "TC-TRI-11", "title": "Xác minh phân loại khi ba cạnh bằng nhau (4, 4, 4)", "inputs": {"Side 1": "4", "Side 2": "4", "Side 3": "4"}, "expected_result": "EQUILATERAL", "covers": "Lớp hợp lệ — đều", "requirements": ["SRS-3.1"], "priority": "High", "status": "Not run"},
+        {"id": "TC-TRI-12", "title": "Xác minh từ chối khi tổng hai cạnh bằng cạnh còn lại (1, 1, 2)", "inputs": {"Side 1": "1", "Side 2": "1", "Side 3": "2"}, "expected_result": "INVALID", "covers": "Biên bất đẳng thức", "requirements": ["SRS-3.3"], "priority": "High", "status": "Not run"},
+        {"id": "TC-TRI-13", "title": "Xác minh từ chối khi một cạnh bằng 0 (0, 5, 5)", "inputs": {"Side 1": "0", "Side 2": "5", "Side 3": "5"}, "expected_result": "INVALID", "covers": "Giá trị biên 0", "requirements": ["SRS-3.2"], "priority": "High", "status": "Not run"},
+        {"id": "TC-TRI-14", "title": "Xác minh thông báo lỗi khi một cạnh không phải số (1, 1, asd)", "inputs": {"Side 1": "1", "Side 2": "1", "Side 3": "asd"}, "expected_result": "Thông báo 'Invalid input'", "covers": "Sai kiểu dữ liệu", "requirements": ["SRS-3.4"], "priority": "Medium", "status": "Not run"}
+      ]
+    }
+  ]
+}
