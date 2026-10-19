@@ -103,14 +103,14 @@ Phải tuân thủ nghiêm ngặt công thức: **ACTION + FUNCTION + CONDITION*
 
 ### 1. Chạy linter kiểm tra file JSON:
 ```bash
-python skills/eshop-test-case-writing/scripts/lint_testcases.py <đường_dẫn_file.json>
+python skills/domain-bva-tester/scripts/lint_testcases.py <đường_dẫn_file.json>
 ```
 - Linter sẽ tự động phát hiện: ID sai định dạng, tiêu đề thiếu Action/Condition, từ ngữ mơ hồ ("hoạt động tốt", "đúng như mong đợi"), câu bị động, số bước > 15, thiếu dọn dẹp dữ liệu, test case trùng lặp hoặc yêu cầu chưa được bao phủ.
 - **Yêu cầu:** Sửa sạch 100% các thông báo `[ERROR]`; rà soát các cảnh báo `[WARN]`.
 
 ### 2. Biên dịch xuất đồng thời Word (.docx) và Excel (.xlsx):
 ```bash
-python skills/eshop-test-case-writing/scripts/build_testcase_docs.py <đường_dẫn_file.json> --out-dir <thư_mục_xuất> --basename <Tên_Tài_Liệu>
+python skills/domain-bva-tester/scripts/build_testcase_docs.py <đường_dẫn_file.json> --out-dir <thư_mục_xuất> --basename <Tên_Tài_Liệu>
 ```
 - **Word (.docx)**: Trình bày chuẩn A4 dọc gồm Thông tin tài liệu, Giới thiệu, Ma trận truy vết yêu cầu, Bảng tổng hợp test case, Chi tiết từng test case (dạng bảng template step-by-step hoặc ma trận dữ liệu), Bảng Review/Chấm điểm, Bảng Refactor Mapping và Khai báo AI Audit.
 - **Excel (.xlsx)**: Gồm Sheet `Tổng quan` (tự động đếm thống kê trạng thái bằng công thức COUNTIF), Sheet `Test Cases` (đầy đủ các bước, dropdown chọn trạng thái Pass/Fail/Blocked tô màu tự động, cố định dòng tiêu đề, bộ lọc Filter), các Sheet Ma trận dữ liệu riêng biệt, Sheet `Truy vết` (đánh dấu cảnh báo đỏ nếu yêu cầu chưa có test case bao phủ), Sheet `Review` và Sheet `Checklist`.
